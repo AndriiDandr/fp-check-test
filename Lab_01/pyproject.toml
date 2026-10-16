@@ -1,0 +1,11 @@
+[tool.ruff.lint]
+extend-select = ["I", "B", "UP", "D"]
+ignore = ["D203", "D213", "UP035"]
+
+[tool.mypy]
+strict = true
+files = ["core.py", "app.py", "tests"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
