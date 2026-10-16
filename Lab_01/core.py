@@ -7,11 +7,7 @@
 
 from collections.abc import Iterable, Mapping
 from functools import reduce
-from typing import Callable, TypedDict, TypeVar
-
-A = TypeVar("A")
-B = TypeVar("B")
-C = TypeVar("C")
+from typing import Callable, TypedDict
 
 
 class Item(TypedDict):
@@ -56,12 +52,12 @@ NowFn = Callable[[], float]
 CartProcessor = Callable[[Iterable[Item]], Receipt]
 
 
-def compose(f: Callable[[B], C], g: Callable[[A], B]) -> Callable[[A], C]:
+def compose[A, B, C](f: Callable[[B], C], g: Callable[[A], B]) -> Callable[[A], C]:
     """Повертає композицію функцій: x -> f(g(x))."""
     return lambda x: f(g(x))
 
 
-def identity(x: A) -> A:
+def identity[A](x: A) -> A:
     """Повертає аргумент без змін (нейтральна політика)."""
     return x
 
