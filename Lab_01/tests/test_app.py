@@ -8,8 +8,8 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from app import format_report, load_cart, main, render_report, run
-from core import Item, make_exclude_category, process_cart_pure
+from app import format_report, load_cart, main, render_report, run, run_orders
+from core import Item, Order, make_exclude_category, process_cart_pure
 
 STAMP = 1_700_000_000.0
 
@@ -41,6 +41,16 @@ def test_render_report_prints(
     )
     render_report(receipt, lambda: STAMP)
     assert "1550.00" in capsys.readouterr().out
+
+
+def test_run_orders_prints_processed(
+    sample_orders: list[Order], capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Оболонка базового завдання друкує оброблені замовлення і виручку."""
+    run_orders(sample_orders)
+    out = capsys.readouterr().out
+    assert "Processed: 1 total: 129.6" in out
+    assert "Revenue: 129.6" in out
 
 
 def test_exclude_category_filter(sample_cart: list[Item]) -> None:

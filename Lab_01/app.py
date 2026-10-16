@@ -12,6 +12,7 @@ from pathlib import Path
 from core import (
     Item,
     NowFn,
+    Order,
     Receipt,
     accept_positive_qty,
     compose,
@@ -21,6 +22,7 @@ from core import (
     make_fixed_coupon,
     make_percent_coupon,
     make_vat,
+    process_orders_pure,
     stamp_total,
 )
 
@@ -95,6 +97,23 @@ def run(
     render_report(alt(cart))
 
 
+def load_orders(path: Path) -> list[Order]:
+    """Читає замовлення базового завдання з JSON-файлу."""
+    with path.open(encoding="utf-8") as f:
+        data: list[Order] = json.load(f)
+    return data
+
+
+def run_orders(orders: list[Order]) -> None:
+    """Оболонка базового завдання: чистий розрахунок + друк результату."""
+    result = process_orders_pure(orders, min_total=100, discount=0.1, tax_rate=0.2)
+    processed, revenue = result["orders"], result["revenue"]
+    assert isinstance(processed, list) and isinstance(revenue, int | float)
+    for o in processed:
+        print("Processed:", o["id"], "total:", round(o["total"], 2))
+    print("Revenue:", round(revenue, 2))
+
+
 def main() -> None:
     """Точка входу: шлях до кошика можна передати аргументом."""
     if hasattr(sys.stdout, "reconfigure"):
@@ -107,6 +126,9 @@ def main() -> None:
         coupon_percent=10,
         vat_rate=0.20,
     )
+    print()
+    print("=== Базове завдання: замовлення ===")
+    run_orders(load_orders(Path(__file__).with_name("orders.json")))
 
 
 if __name__ == "__main__":

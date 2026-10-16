@@ -7,6 +7,7 @@
 
 from collections.abc import Iterable, Mapping
 from functools import reduce
+from types import MappingProxyType
 from typing import Callable, TypedDict
 
 
@@ -44,11 +45,14 @@ class Receipt(TypedDict):
     total: float
 
 
+SubtotalFn = Callable[[float], float]
+DiscountFn = Callable[[float], float]
+TaxFn = Callable[[float], float]
+FilterFn = Callable[[float], bool]
+NowFn = Callable[[], float]
 ItemFilterFn = Callable[[Item], bool]
 CategoryDiscountFn = Callable[[Item], float]
-CouponFn = Callable[[float], float]
-TaxFn = Callable[[float], float]
-NowFn = Callable[[], float]
+CouponFn = SubtotalFn
 CartProcessor = Callable[[Iterable[Item]], Receipt]
 
 
@@ -118,7 +122,7 @@ def scale_prices(items: Iterable[Item], k: float) -> list[Item]:
 
 def make_category_discount(rates: Mapping[str, float]) -> CategoryDiscountFn:
     """Фабрика політики знижки: ставка залежить від категорії товару."""
-    frozen = dict(rates)
+    frozen = MappingProxyType(dict(rates))
     return lambda item: frozen.get(item["category"], 0.0)
 
 
@@ -217,8 +221,6 @@ class Order(TypedDict, total=False):
     total: float
 
 
-FilterFn = Callable[[float], bool]
-DiscountFn = Callable[[float], float]
 OrdersProcessor = Callable[[Iterable[Order]], dict[str, object]]
 
 
@@ -237,17 +239,19 @@ def make_processor(
     accept: FilterFn,
     apply_discount: DiscountFn,
     apply_tax: TaxFn,
+    adjust_subtotal: SubtotalFn = identity,
 ) -> OrdersProcessor:
-    """Функція вищого порядку для замовлень: політики передаються як Callable."""
+    """Функція вищого порядку для замовлень: політики передаються як Callable.
+
+    ``adjust_subtotal`` (SubtotalFn) дозволяє вставити купон до знижки й податку.
+    """
+    pipeline = compose(apply_tax, compose(apply_discount, adjust_subtotal))
 
     def process(orders: Iterable[Order]) -> dict[str, object]:
         """Відбирає оплачені замовлення і рахує нові записи з total."""
-        paid = [o for o in orders if o["paid"]]
-        accepted = [o for o in paid if accept(order_subtotal(o))]
-        qualified = [
-            with_total(o, apply_tax(apply_discount(order_subtotal(o))))
-            for o in accepted
-        ]
+        paid = filter(lambda o: o["paid"], orders)
+        accepted = filter(lambda o: accept(order_subtotal(o)), paid)
+        qualified = [with_total(o, pipeline(order_subtotal(o))) for o in accepted]
         revenue = sum(o["total"] for o in qualified)
         return {"count": len(qualified), "revenue": revenue, "orders": qualified}
 
