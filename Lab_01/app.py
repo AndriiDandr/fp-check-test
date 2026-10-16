@@ -11,6 +11,7 @@ from pathlib import Path
 
 from core import (
     Item,
+    NowFn,
     Receipt,
     accept_positive_qty,
     compose,
@@ -31,7 +32,7 @@ def load_cart(path: Path) -> list[Item]:
     return data
 
 
-def render_report(receipt: Receipt, stamped_at: float) -> str:
+def format_report(receipt: Receipt, stamped_at: float) -> str:
     """Формує текст чека з готового результату (без друку)."""
     header = (
         f"{'Товар':<22}{'Категорія':<13}{'Ціна':>9}{'К-сть':>7}"
@@ -56,6 +57,12 @@ def render_report(receipt: Receipt, stamped_at: float) -> str:
     return "\n".join([header, separator, *rows, separator, *totals])
 
 
+def render_report(result: Receipt, now: NowFn = time.time) -> None:
+    """Оболонка виводу: лише споживає чистий результат і друкує чек."""
+    _, stamped_at = stamp_total(result["total"], now)
+    print(format_report(result, stamped_at))
+
+
 def run(
     cart: list[Item],
     *,
@@ -70,10 +77,8 @@ def run(
         apply_coupon=make_percent_coupon(coupon_percent),
         apply_tax=make_vat(vat_rate),
     )
-    receipt = processor(cart)
-    _, stamped_at = stamp_total(receipt["total"], time.time)
     print(f"=== Кошик: купон {coupon_percent:g}%, ПДВ {vat_rate:.0%} ===")
-    print(render_report(receipt, stamped_at))
+    render_report(processor(cart))
 
     combo_coupon = compose(
         make_fixed_coupon(100, min_amount=1000),
@@ -87,7 +92,7 @@ def run(
     )
     print()
     print("=== Інша політика: без food, купон 5% + 100 грн від 1000 грн ===")
-    print(render_report(alt(cart), stamped_at))
+    render_report(alt(cart))
 
 
 def main() -> None:

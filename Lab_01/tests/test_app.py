@@ -8,7 +8,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from app import load_cart, main, render_report, run
+from app import format_report, load_cart, main, render_report, run
 from core import Item, make_exclude_category, process_cart_pure
 
 STAMP = 1_700_000_000.0
@@ -21,15 +21,26 @@ def test_load_cart(tmp_path: Path, sample_cart: list[Item]) -> None:
     assert load_cart(path) == sample_cart
 
 
-def test_render_report_is_pure(sample_cart: list[Item]) -> None:
+def test_format_report_is_pure(sample_cart: list[Item]) -> None:
     """Звіт будується з результату і містить підсумкову суму."""
     receipt = process_cart_pure(
         sample_cart, category_rates={}, coupon_percent=0, vat_rate=0.0
     )
-    text = render_report(receipt, STAMP)
-    assert text == render_report(receipt, STAMP)
+    text = format_report(receipt, STAMP)
+    assert text == format_report(receipt, STAMP)
     assert "Phone" in text
     assert "1550.00" in text
+
+
+def test_render_report_prints(
+    sample_cart: list[Item], capsys: pytest.CaptureFixture[str]
+) -> None:
+    """render_report друкує чек, час береться з переданої функції."""
+    receipt = process_cart_pure(
+        sample_cart, category_rates={}, coupon_percent=0, vat_rate=0.0
+    )
+    render_report(receipt, lambda: STAMP)
+    assert "1550.00" in capsys.readouterr().out
 
 
 def test_exclude_category_filter(sample_cart: list[Item]) -> None:
