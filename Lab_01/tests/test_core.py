@@ -35,17 +35,6 @@ COUPON = 10
 VAT = 0.2
 
 
-@pytest.fixture
-def sample_cart() -> list[Item]:
-    """Тестовий кошик: три звичайні товари і один з нульовою кількістю."""
-    return [
-        {"name": "Phone", "price": 1000.0, "qty": 1, "category": "electronics"},
-        {"name": "Book", "price": 200.0, "qty": 2, "category": "books"},
-        {"name": "Bread", "price": 30.0, "qty": 5, "category": "food"},
-        {"name": "Ghost", "price": 99.0, "qty": 0, "category": "books"},
-    ]
-
-
 def test_line_total_and_subtotal(sample_cart: list[Item]) -> None:
     """Сума позиції та кошика рахуються як ціна × кількість."""
     assert line_total(sample_cart[1]) == 400.0

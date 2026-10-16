@@ -14,17 +14,6 @@ from core import Item, make_exclude_category, process_cart_pure
 STAMP = 1_700_000_000.0
 
 
-@pytest.fixture
-def sample_cart() -> list[Item]:
-    """Тестовий кошик: три звичайні товари і один з нульовою кількістю."""
-    return [
-        {"name": "Phone", "price": 1000.0, "qty": 1, "category": "electronics"},
-        {"name": "Book", "price": 200.0, "qty": 2, "category": "books"},
-        {"name": "Bread", "price": 30.0, "qty": 5, "category": "food"},
-        {"name": "Ghost", "price": 99.0, "qty": 0, "category": "books"},
-    ]
-
-
 def test_load_cart(tmp_path: Path, sample_cart: list[Item]) -> None:
     """Кошик читається з JSON-файлу без змін."""
     path = tmp_path / "cart.json"

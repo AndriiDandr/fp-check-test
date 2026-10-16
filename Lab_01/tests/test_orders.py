@@ -18,21 +18,6 @@ from core import (
 )
 
 
-@pytest.fixture
-def sample_orders() -> list[Order]:
-    """Тестові замовлення для базового завдання."""
-    return [
-        {"id": 1, "items": [{"price": 60.0, "qty": 2}], "paid": True},
-        {"id": 2, "items": [{"price": 30.0, "qty": 1}], "paid": True},
-        {"id": 3, "items": [{"price": 500.0, "qty": 1}], "paid": False},
-        {
-            "id": 4,
-            "items": [{"price": 40.0, "qty": 1}, {"price": 25.0, "qty": 2}],
-            "paid": True,
-        },
-    ]
-
-
 def test_referential_transparency(sample_orders: list[Order]) -> None:
     """Той самий вхід → той самий вихід."""
     args = {"min_total": 100, "discount": 0.1, "tax_rate": 0.2}
