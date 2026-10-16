@@ -149,6 +149,11 @@ def accept_positive_qty(item: Item) -> bool:
     return item["qty"] > 0 and item["price"] >= 0
 
 
+def make_exclude_category(category: str) -> ItemFilterFn:
+    """Фабрика фільтра: позиції з додатною кількістю, крім заданої категорії."""
+    return lambda item: accept_positive_qty(item) and item["category"] != category
+
+
 def make_cart_processor(
     *,
     accept: ItemFilterFn,

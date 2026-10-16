@@ -8,8 +8,8 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from app import accept_non_food, load_cart, main, render_report, run
-from core import Item, process_cart_pure
+from app import load_cart, main, render_report, run
+from core import Item, make_exclude_category, process_cart_pure
 
 STAMP = 1_700_000_000.0
 
@@ -43,9 +43,9 @@ def test_render_report_is_pure(sample_cart: list[Item]) -> None:
     assert "1550.00" in text
 
 
-def test_accept_non_food(sample_cart: list[Item]) -> None:
+def test_exclude_category_filter(sample_cart: list[Item]) -> None:
     """Альтернативний фільтр відкидає їжу і нульову кількість."""
-    assert [it["name"] for it in sample_cart if accept_non_food(it)] == [
+    assert [it["name"] for it in sample_cart if make_exclude_category("food")(it)] == [
         "Phone",
         "Book",
     ]

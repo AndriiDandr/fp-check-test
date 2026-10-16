@@ -19,7 +19,7 @@
 - Політики фільтрації, категоріальної знижки, купона і ПДВ передаються через `typing.Callable`.
 - Функція вищого порядку `make_cart_processor` і фабрики політик повертають налаштовані обробники.
 - `print`, читання файлу `cart.json` і отримання часу винесені в оболонку `app.py`.
-- pytest-тести на референтну прозорість, відсутність мутацій і правильність Callable-політик.
+- pytest-тести (зокрема property-based на Hypothesis) на референтну прозорість, відсутність мутацій і правильність Callable-політик.
 - Базове завдання (стартовий `process_orders`) теж переписано у функціональному стилі.
 
 ## Структура програми
@@ -33,9 +33,10 @@ Lab_01/
   tests/test_core.py   тести чистого ядра (кошик, варіант 4)
   tests/test_orders.py мінімальні тести з умови (замовлення)
   tests/test_app.py    тести оболонки I/O
-  requirements.txt     pytest, mypy, black, ruff
+  tests/test_properties.py property-based тести (Hypothesis)
+  requirements.txt     pytest, hypothesis, mypy, black, ruff
   pyproject.toml       налаштування ruff / mypy / pytest
-  Lab_01.docx          звіт
+  report/Lab_01.docx   звіт
 ```
 
 ### Чисті функції (`core.py`)
@@ -72,4 +73,4 @@ python -m black --check .
 python -m ruff check .
 ```
 
-Результат: 21 тест пройдено, mypy (strict) — без помилок, black і ruff — чисто.
+Результат: 24 тести пройдено (з них 3 property-based), mypy (strict) — без помилок, black і ruff — чисто.

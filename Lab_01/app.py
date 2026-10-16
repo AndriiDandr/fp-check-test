@@ -16,6 +16,7 @@ from core import (
     compose,
     make_cart_processor,
     make_category_discount,
+    make_exclude_category,
     make_fixed_coupon,
     make_percent_coupon,
     make_vat,
@@ -55,11 +56,6 @@ def render_report(receipt: Receipt, stamped_at: float) -> str:
     return "\n".join([header, separator, *rows, separator, *totals])
 
 
-def accept_non_food(item: Item) -> bool:
-    """Альтернативний фільтр: усі товари, крім продуктів харчування."""
-    return accept_positive_qty(item) and item["category"] != "food"
-
-
 def run(
     cart: list[Item],
     *,
@@ -84,7 +80,7 @@ def run(
         make_percent_coupon(5),
     )
     alt = make_cart_processor(
-        accept=accept_non_food,
+        accept=make_exclude_category("food"),
         category_discount=make_category_discount({"electronics": 0.10}),
         apply_coupon=combo_coupon,
         apply_tax=make_vat(vat_rate),
