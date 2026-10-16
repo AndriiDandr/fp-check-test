@@ -1,0 +1,8 @@
+[
+  {"name": "Ноутбук Lenovo", "price": 24999.0, "qty": 1, "category": "electronics"},
+  {"name": "Мишка Logitech", "price": 650.0, "qty": 2, "category": "electronics"},
+  {"name": "Книга \"Python\"", "price": 480.0, "qty": 3, "category": "books"},
+  {"name": "Футболка", "price": 350.0, "qty": 2, "category": "clothes"},
+  {"name": "Кава зернова", "price": 289.5, "qty": 4, "category": "food"},
+  {"name": "Чохол (немає)", "price": 199.0, "qty": 0, "category": "electronics"}
+]
