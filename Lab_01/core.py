@@ -6,6 +6,7 @@
 """
 
 from collections.abc import Iterable, Mapping
+from functools import reduce
 from typing import Callable, TypedDict, TypeVar
 
 A = TypeVar("A")
@@ -77,7 +78,7 @@ def line_total(item: Item) -> float:
 
 def cart_subtotal(items: Iterable[Item]) -> float:
     """Сума всіх позицій кошика без знижок і податків."""
-    return sum(line_total(it) for it in items)
+    return reduce(lambda acc, it: acc + line_total(it), items, 0.0)
 
 
 def price_item(item: Item, discount_rate: float) -> PricedItem:
@@ -99,14 +100,19 @@ def with_qty(item: Item, qty: int) -> Item:
     return {**item, "qty": qty}
 
 
+def with_price(item: Item, price: float) -> Item:
+    """Повертає копію товару з новою ціною."""
+    return {**item, "price": price}
+
+
 def without_category(items: Iterable[Item], category: str) -> list[Item]:
     """Повертає новий список без товарів заданої категорії."""
-    return [it for it in items if it["category"] != category]
+    return list(filter(lambda it: it["category"] != category, items))
 
 
 def scale_prices(items: Iterable[Item], k: float) -> list[Item]:
     """Повертає новий список товарів з ціною, помноженою на k."""
-    return [{**it, "price": it["price"] * k} for it in items]
+    return list(map(lambda it: with_price(it, it["price"] * k), items))
 
 
 def make_category_discount(rates: Mapping[str, float]) -> CategoryDiscountFn:
