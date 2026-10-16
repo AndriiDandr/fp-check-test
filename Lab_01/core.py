@@ -112,7 +112,12 @@ def without_category(items: Iterable[Item], category: str) -> list[Item]:
 
 def scale_prices(items: Iterable[Item], k: float) -> list[Item]:
     """Повертає новий список товарів з ціною, помноженою на k."""
-    return list(map(lambda it: with_price(it, it["price"] * k), items))
+
+    def scaled(it: Item) -> Item:
+        """Копія товару з помноженою ціною."""
+        return with_price(it, it["price"] * k)
+
+    return list(map(scaled, items))
 
 
 def make_category_discount(rates: Mapping[str, float]) -> CategoryDiscountFn:
