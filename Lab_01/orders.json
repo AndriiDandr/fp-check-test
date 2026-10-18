@@ -1,6 +1,0 @@
-[
-  {"id": 1, "items": [{"price": 60.0, "qty": 2}], "paid": true},
-  {"id": 2, "items": [{"price": 30.0, "qty": 1}], "paid": true},
-  {"id": 3, "items": [{"price": 500.0, "qty": 1}], "paid": false},
-  {"id": 4, "items": [{"price": 80.0, "qty": 1}, {"price": 25.0, "qty": 2}], "paid": true}
-]

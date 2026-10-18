@@ -1,5 +1,0 @@
-pytest
-hypothesis
-mypy
-black
-ruff
