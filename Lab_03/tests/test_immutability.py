@@ -1,5 +1,6 @@
 """Тести незмінності: немутація, read-only, хешованість, коректність нових копій."""
 
+from collections.abc import Callable
 from dataclasses import FrozenInstanceError
 from types import MappingProxyType
 from typing import Any
@@ -23,7 +24,6 @@ from core import (
     update_supplier,
     with_tag,
 )
-from factories import build_record, build_records
 from model import Movement, Product, StockRecord, freeze, make_meta
 
 
@@ -50,9 +50,11 @@ def test_slots_forbid_new_attributes(record: StockRecord) -> None:
         target.extra = 1
 
 
-def test_no_mutation_when_restocking(record: StockRecord) -> None:
+def test_no_mutation_when_restocking(
+    record: StockRecord, fresh_record: Callable[[], StockRecord]
+) -> None:
     """Поповнення повертає НОВИЙ запис, оригінал не змінюється."""
-    snapshot = build_record()
+    snapshot = fresh_record()
     new_record = restock(record, 6)
     assert record == snapshot
     assert new_record is not record
@@ -118,13 +120,15 @@ def test_update_supplier_returns_new_meta(record: StockRecord) -> None:
     assert supplier_name(make_meta()) == "unknown"
 
 
-def test_hashability(record: StockRecord) -> None:
+def test_hashability(
+    record: StockRecord, fresh_record: Callable[[], StockRecord]
+) -> None:
     """Product і StockRecord хешовані та придатні як ключі dict/set."""
     same = restock(ship(record, 2), 2)
     products = {record.product, change_price(record, 1.0).product}
     assert len(products) == 2
-    assert hash(record) == hash(build_record())
-    assert {record: "ok"}[build_record()] == "ok"
+    assert hash(record) == hash(fresh_record())
+    assert {record: "ok"}[fresh_record()] == "ok"
     assert same != record
     assert len({record, restock(record, 1)}) == 2
 
@@ -153,9 +157,12 @@ def test_freeze_deep_structure() -> None:
         target["a"] = ()
 
 
-def test_inventory_functions_return_tuples(records: tuple[StockRecord, ...]) -> None:
+def test_inventory_functions_return_tuples(
+    records: tuple[StockRecord, ...],
+    fresh_records: Callable[[], tuple[StockRecord, ...]],
+) -> None:
     """Бізнес-функції повертають tuple і не змінюють вхід."""
-    snapshot = build_records()
+    snapshot = fresh_records()
     assert total_value(records) == pytest.approx(4000.0 + 2000.0 + 50.0)
     assert [r.product.sku for r in to_reorder(records)] == ["LAP-01", "TSH-03"]
     assert [r.product.sku for r in top_valuable(records, 2)] == ["LAP-01", "BOO-02"]
@@ -182,21 +189,25 @@ def test_price_rule_returns_new_records(records: tuple[StockRecord, ...]) -> Non
     assert discounted is not records
 
 
-def test_reorder_cost_is_cached(record: StockRecord) -> None:
+def test_reorder_cost_is_cached(
+    record: StockRecord, fresh_record: Callable[[], StockRecord]
+) -> None:
     """reorder_cost кешується через lru_cache."""
     reorder_cost.cache_clear()
     first = reorder_cost(record)
-    second = reorder_cost(build_record())
+    second = reorder_cost(fresh_record())
     info = reorder_cost.cache_info()
     assert first == second == 6000.0
     assert info.hits == 1
     assert info.misses == 1
 
 
-def test_no_mutation_when_adding_tag(record: StockRecord) -> None:
+def test_no_mutation_when_adding_tag(
+    record: StockRecord, fresh_record: Callable[[], StockRecord]
+) -> None:
     """Додавання тегу не змінює оригінал і повертає новий об'єкт."""
     original = record
-    control = build_record()
+    control = fresh_record()
     new_record = add_tag(record, "vip")
     assert record is original
     assert record == control

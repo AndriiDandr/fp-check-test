@@ -1,0 +1,10 @@
+[tool.ruff.lint]
+extend-select = ["I", "B", "UP", "C4", "SIM", "D"]
+ignore = ["D203", "D213", "D400", "D415"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app", "core", "model", "mutable_model"]
