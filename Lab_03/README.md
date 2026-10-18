@@ -15,18 +15,19 @@
 
 - застосувати `tuple`, `frozenset`, `@dataclass(frozen=True, slots=True)`, `NamedTuple`, `MappingProxyType`;
 - замінити мутації на pure updates (`dataclasses.replace`, конкатенація `tuple`, операції `frozenset`);
-- виміряти ефект переходу на незмінні структури (`pytest --durations=5`, `pytest-benchmark`).
+- виміряти ефект переходу на незмінні структури (`pytest --durations=5`, вимірювання `perf_counter`).
 
 ## Що зроблено
 
 | Файл | Призначення |
 |---|---|
-| `model.py` | `Movement` (`NamedTuple`), `Product` і `StockRecord` (`frozen=True, slots=True`) з методами pure-оновлення `with_price`, `with_tag`, `without_tag`, `with_movement`, `with_product` (`dataclasses.replace`), `make_meta` (копія + `MappingProxyType`), `freeze` — глибоке заморожування |
+| `model.py` | `Movement` (`NamedTuple`), `Category` (`Literal`), `Product` і `StockRecord` (`frozen=True, slots=True`) з методами pure-оновлення `with_price`, `with_tag`, `without_tag`, `with_movement`, `with_product` (`dataclasses.replace`), `make_meta` (копія + `MappingProxyType`), `freeze` — глибоке заморожування |
 | `core.py` | pure-оновлення `restock`, `ship`, `change_price`, `add_tag`, `remove_tag`, `update_supplier`; бізнес-функції `total_value`, `to_reorder`, `top_valuable`, `with_tag`, `index_by_sku`; правило знижок `make_category_discount` + `apply_price_rule`; `reorder_cost` з `lru_cache` |
 | `mutable_model.py` | «стара» мутабельна версія (dict/list/set) — лише для порівняння часу |
 | `app.py` | оболонка I/O: читає `warehouse.json`, виконує оновлення, друкує таблиці |
 | `tests/test_immutability.py` | `test_no_mutation_*`, `test_hashability`, `test_mappingproxy_is_read_only`, `FrozenInstanceError`, `freeze`, `lru_cache` |
-| `tests/test_performance.py` | benchmark до/після: мутабельна і незмінна модель, `reorder_cost` з кешем і без, `test_stock_value_benchmark` |
+| `tests/test_properties.py` | property-based тести (Hypothesis): чистота `restock`/`change_price`, ідемпотентність `add_tag` і `freeze`, `hash` узгоджений з `==` |
+| `tests/test_performance.py` | порівняння часу до/після (`perf_counter`, без плагінів): мутабельна і незмінна модель, `reorder_cost` з кешем і без |
 
 **Хешованість.** `Product` хешований повністю. `StockRecord` теж хешований: поле `supplier`
 (`MappingProxyType`) саме по собі не хешується, тому воно виключене з хешу через
@@ -44,8 +45,8 @@ Lab_03/
   app.py
   warehouse.json
   tests/conftest.py
-  tests/factories.py
   tests/test_immutability.py
+  tests/test_properties.py
   tests/test_performance.py
   requirements.txt
   pyproject.toml
@@ -58,9 +59,9 @@ Lab_03/
 ```bash
 pip install -r requirements.txt
 python app.py
-python -m pytest --benchmark-disable
-python -m pytest --benchmark-disable --durations=5
-python -m pytest tests/test_performance.py --benchmark-min-rounds=10
+python -m pytest
+python -m pytest --durations=5
+python -m pytest -q -s tests/test_performance.py
 python -m mypy
 python -m black --check .
 python -m ruff check .
@@ -68,17 +69,17 @@ python -m ruff check .
 
 ## Вимірювання
 
-`pytest-benchmark`, 2000 операцій «поповнення + зміна ціни + тег» над одним записом:
+`tests/test_performance.py` (найкращий з 5 запусків, 2000 операцій «поповнення + зміна ціни + тег»):
 
-| Тест | Медіана |
+| Тест | Час |
 |---|---|
-| до: мутабельна модель (`dict`/`list`/`set`, in-place) | ≈ 0.65 мс |
-| після: незмінна модель (`frozen dataclass`, `tuple`, `frozenset`) | ≈ 20 мс |
-| `reorder_cost` без кешу | ≈ 0.4 мкс |
-| `reorder_cost` з `lru_cache` | ≈ 0.3 мкс |
+| до: мутабельна модель (`dict`/`list`/`set`, in-place) | ≈ 0.6 мс |
+| після: незмінна модель (`frozen dataclass`, `tuple`, `frozenset`) | ≈ 19 мс |
+| 10 000 викликів `reorder_cost` без кешу | ≈ 3.2 мс |
+| 10 000 викликів `reorder_cost` з `lru_cache` | ≈ 2.4 мс |
 
-`pytest --durations=5`: найдовший тест — `test_after_immutable_operations` (0.02 с), решта < 0.005 с;
-увесь набір із 24 тестів проходить за ≈ 0.7 с.
+`pytest --durations=5`: найдовші — тести вимірювання часу (до 0.15 с), решта < 0.005 с;
+увесь набір із 29 тестів проходить менш ніж за 1 с.
 
 ## Висновок
 

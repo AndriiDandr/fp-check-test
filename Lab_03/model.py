@@ -3,7 +3,9 @@
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field, replace
 from types import MappingProxyType
-from typing import NamedTuple
+from typing import Literal, NamedTuple
+
+Category = Literal["electronics", "books", "clothes", "food", "misc"]
 
 
 def make_meta(**kwargs: str) -> Mapping[str, str]:
@@ -36,7 +38,7 @@ class Product:
     sku: str
     name: str
     price: float
-    category: str
+    category: Category
     tags: frozenset[str] = frozenset()
 
     def with_price(self, price: float) -> "Product":
@@ -88,7 +90,7 @@ def make_record(
     sku: str,
     name: str,
     price: float,
-    category: str,
+    category: Category,
     quantity: int,
     min_quantity: int,
     tags: Iterable[str] = (),
