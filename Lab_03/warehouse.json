@@ -1,0 +1,6 @@
+[
+  {"sku": "LAP-01", "name": "Ноутбук Lenovo", "price": 24999.0, "category": "electronics", "quantity": 4, "min_quantity": 5, "tags": ["new"], "supplier": {"name": "TechImport", "city": "Київ"}},
+  {"sku": "MOU-02", "name": "Мишка Logitech", "price": 650.0, "category": "electronics", "quantity": 40, "min_quantity": 10, "tags": [], "supplier": {"name": "TechImport", "city": "Київ"}},
+  {"sku": "BOO-03", "name": "Книга Python", "price": 480.0, "category": "books", "quantity": 2, "min_quantity": 6, "tags": ["bestseller"], "supplier": {"name": "BookHouse", "city": "Львів"}},
+  {"sku": "TSH-04", "name": "Футболка", "price": 350.0, "category": "clothes", "quantity": 25, "min_quantity": 8, "tags": [], "supplier": {"name": "TextileUA", "city": "Харків"}}
+]
